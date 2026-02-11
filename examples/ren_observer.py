@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 
-from robustnn import ren_jax
+from robustnn import ren_jax as ren
 from robustnn.utils import count_num_params
 
 from utils.plot_utils import startup_plotting
@@ -41,7 +41,7 @@ ren_config = {
 
 def build_ren(input_data, config):
     """Build a REN for the PDE observer."""
-    return ren_jax.ContractingREN(
+    return ren.ContractingREN(
         input_data.shape[-1], 
         config["nx"],
         config["nv"],

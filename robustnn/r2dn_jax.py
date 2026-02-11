@@ -21,7 +21,7 @@ from flax.linen import initializers as init
 from flax.struct import dataclass
 from flax.typing import Dtype, Array
 
-from robustnn import lbdn_jax
+from robustnn import lbdn_jax as lbdn
 from robustnn.utils import l2_norm
 from robustnn.utils import ActivationFn, Initializer
 
@@ -50,7 +50,7 @@ class DirectR2DNParams:
     bx: Array
     bv: Array
     by: Array
-    network_params: lbdn_jax.DirectLBDNParams
+    network_params: lbdn.DirectLBDNParams
 
 
 @dataclass
@@ -70,7 +70,7 @@ class ExplicitR2DNParams:
     bx: Array
     bv: Array
     by: Array
-    network_params: lbdn_jax.ExplicitLBDNParams
+    network_params: lbdn.ExplicitLBDNParams
     
 
 class ContractingR2DN(nn.Module):
@@ -249,7 +249,7 @@ class ContractingR2DN(nn.Module):
     
     def _network_init(self):
         """Initialise the LBDN for the nonlinear layer"""
-        self.network = lbdn_jax.LBDN(
+        self.network = lbdn.LBDN(
             input_size=self.features,
             hidden_sizes=self.hidden,
             output_size=self.features,

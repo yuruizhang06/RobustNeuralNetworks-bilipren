@@ -10,7 +10,7 @@ import tensorflow_datasets as tfds      # TFDS to download MNIST.
 import tensorflow as tf                 # TensorFlow / `tf.data` operations.
 
 import flax.linen as nn
-from robustnn import lbdn_jax
+from robustnn import lbdn_jax as lbdn
 
 from functools import partial
 from pathlib import Path
@@ -84,9 +84,9 @@ class LipschitzMLP(nn.Module):
     gamma: jnp.float32 = 1.0 # type: ignore
 
     def setup(self):
-      self.sandwich1 = lbdn_jax.SandwichLayer(n_inputs, 64, activation=nn.relu)
-      self.sandwich2 = lbdn_jax.SandwichLayer(64, 64, activation=nn.relu)
-      self.sandwich3 = lbdn_jax.SandwichLayer(64, n_out, is_output=True)
+      self.sandwich1 = lbdn.SandwichLayer(n_inputs, 64, activation=nn.relu)
+      self.sandwich2 = lbdn.SandwichLayer(64, 64, activation=nn.relu)
+      self.sandwich3 = lbdn.SandwichLayer(64, n_out, is_output=True)
       self.scale = jnp.sqrt(self.gamma)
 
     def __call__(self, x):

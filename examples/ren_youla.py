@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from robustnn import ren_jax
+from robustnn import ren_jax as ren
 from robustnn.utils import count_num_params
 
 from utils.plot_utils import startup_plotting
@@ -39,7 +39,7 @@ config = {
 
 def build_model(config):
     """Build a REN for the Youla policy."""
-    return ren_jax.ContractingREN(
+    return ren.ContractingREN(
         1, 
         config["nx"],
         config["nv"],

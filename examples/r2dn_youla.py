@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from robustnn import r2dn_jax
+from robustnn import r2dn_jax as r2dn
 from robustnn.utils import count_num_params
 
 from utils.plot_utils import startup_plotting
@@ -41,7 +41,7 @@ config = {
 
 def build_model(config):
     """Build an R2DN for the Youla policy."""
-    return r2dn_jax.ContractingR2DN(
+    return r2dn.ContractingR2DN(
         1,
         config["nx"],
         config["nv"],
