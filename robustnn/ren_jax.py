@@ -17,7 +17,7 @@ Author: Nic Barbara.
 
 import jax.numpy as jnp
 from flax.typing import Array
-from robustnn import ren_base as ren
+from robustnn import ren_base_jax as ren
 
 class ContractingREN(ren.RENBase):
     """Construct a Contracting REN.

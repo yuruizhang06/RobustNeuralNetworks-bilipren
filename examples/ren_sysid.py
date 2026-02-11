@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from robustnn import ren
+from robustnn import ren_jax
 from robustnn.utils import count_num_params
 
 from utils.plot_utils import startup_plotting
@@ -43,7 +43,7 @@ ren_config = {
 
 def build_ren(config):
     """Build a REN."""
-    return ren.ContractingREN(
+    return ren_jax.ContractingREN(
         2, 
         config["nx"],
         config["nv"],

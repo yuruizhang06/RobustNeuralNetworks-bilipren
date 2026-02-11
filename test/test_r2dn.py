@@ -3,7 +3,7 @@
 import jax
 import jax.numpy as jnp
 
-from robustnn import r2dn
+from robustnn import r2dn_jax
 from robustnn.utils import count_num_params
 from utils import compute_p_contractingr2dn
 
@@ -21,7 +21,7 @@ nx = 3                  # Number of states
 nv = 4                  # Number of equilibirum layer states
 nh = (2,) * 2           # Number of hidden layers in the LBDN
 init_method = "long_memory"
-model = r2dn.ContractingR2DN(nu, nx, nv, ny, nh, init_method=init_method)
+model = r2dn_jax.ContractingR2DN(nu, nx, nv, ny, nh, init_method=init_method)
     
 # Random seeds
 rng = jax.random.key(0)

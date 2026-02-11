@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 import flax.linen as nn
 
-from robustnn import ren
+from robustnn import ren_jax
 
 # Need this to avoid matrix multiplication discrepancy (see issue #15)
 jax.config.update("jax_default_matmul_precision", "highest")
@@ -22,7 +22,7 @@ S = jax.random.normal(keyS, (nu, ny))
 Q = -X.T @ X
 R = S @ jnp.linalg.solve(Q, S.T) + Y.T @ Y
 
-model = ren.GeneralREN(nu, nx, nv, ny, Q=Q, S=S, R=R, 
+model = ren_jax.GeneralREN(nu, nx, nv, ny, Q=Q, S=S, R=R, 
                        activation=nn.tanh, init_method="long_memory")
 model.check_valid_qsr()
 

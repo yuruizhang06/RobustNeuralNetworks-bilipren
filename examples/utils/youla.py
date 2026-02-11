@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime
 from scipy import signal
 
-from robustnn import ren_base as ren
+from robustnn import ren_base_jax as ren
 from .utils import l2_norm, l1_norm
 
 

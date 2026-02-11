@@ -4,8 +4,8 @@ import jax, jax.numpy as jnp
 import optax
 
 from robustnn.utils import l2_norm
-from robustnn import ren_base as ren
-from robustnn import r2dn
+from robustnn import ren_base_jax as ren
+from robustnn import r2dn_jax
 
 
 def estimate_lipschitz_lower(    
@@ -110,7 +110,7 @@ def compute_p_contractingren(model: ren.RENBase, ps: dict):
     return E.T @ jnp.linalg.solve(P_imp, E)
 
 
-def compute_p_contractingr2dn(model: r2dn.ContractingR2DN, ps: dict):
+def compute_p_contractingr2dn(model: r2dn_jax.ContractingR2DN, ps: dict):
     """Compute the P matrix for the Lyapunov function describing
     stability of a contracting R2DN.
 
