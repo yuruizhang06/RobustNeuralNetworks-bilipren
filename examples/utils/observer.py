@@ -6,7 +6,7 @@ import jax.numpy as jnp
 import optax
 from optax import tree_utils as otu
 
-from robustnn import ren_base as ren
+from robustnn import ren_base_jax as ren
 from .utils import l2_norm
 
 

@@ -21,7 +21,7 @@ from flax.linen import initializers as init
 from flax.struct import dataclass
 from flax.typing import Dtype, Array
 
-from robustnn import lbdn
+from robustnn import lbdn_jax as lbdn
 from robustnn.utils import l2_norm
 from robustnn.utils import ActivationFn, Initializer
 

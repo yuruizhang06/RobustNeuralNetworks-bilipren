@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 
-from robustnn import ren
+from robustnn import ren_jax as ren
 from robustnn.utils import count_num_params
 
 from utils.plot_utils import startup_plotting

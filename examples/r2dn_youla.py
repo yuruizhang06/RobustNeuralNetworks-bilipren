@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from robustnn import r2dn
+from robustnn import r2dn_jax as r2dn
 from robustnn.utils import count_num_params
 
 from utils.plot_utils import startup_plotting

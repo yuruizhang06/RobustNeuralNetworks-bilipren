@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 import flax.linen as nn
 
-from robustnn.lbdn import LBDN
+from robustnn.lbdn_jax import LBDN
 
 # Need this to avoid matrix multiplication discrepancy (see issue #15)
 jax.config.update("jax_default_matmul_precision", "highest")

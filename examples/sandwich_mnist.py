@@ -10,7 +10,7 @@ import tensorflow_datasets as tfds      # TFDS to download MNIST.
 import tensorflow as tf                 # TensorFlow / `tf.data` operations.
 
 import flax.linen as nn
-from robustnn import lbdn
+from robustnn import lbdn_jax as lbdn
 
 from functools import partial
 from pathlib import Path

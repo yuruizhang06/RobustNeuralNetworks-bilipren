@@ -3,7 +3,7 @@
 import jax
 import jax.numpy as jnp
 
-from robustnn import r2dn
+from robustnn import r2dn_jax as r2dn
 from robustnn.utils import count_num_params
 from utils import compute_p_contractingr2dn
 

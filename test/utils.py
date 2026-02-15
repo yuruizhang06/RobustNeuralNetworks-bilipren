@@ -4,8 +4,8 @@ import jax, jax.numpy as jnp
 import optax
 
 from robustnn.utils import l2_norm
-from robustnn import ren_base as ren
-from robustnn import r2dn
+from robustnn import ren_base_jax as ren
+from robustnn import r2dn_jax as r2dn
 
 
 def estimate_lipschitz_lower(    
