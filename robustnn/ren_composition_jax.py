@@ -8,12 +8,12 @@ layers. Because the unitary layers are norm-preserving, the overall map keeps th
 bi-Lipschitz bounds: the composition has lower bound `mu` and upper bound `nu`,
 which are split geometrically across the `num_layers` REN blocks.
 
-The architecture mirrors the old `CompREN`/`ORTHREN` model:
+The architecture is:
 
     [input_orth | dyn_in] -> [REN -> orth] x num_layers -> output_orth [-> dyn_out]
 
 where the (optional) input/output layers can be made dynamic (`DynUnitary`) via
-`dyn_orth` / `dyn_orth_at_output`. Dynamic layers add memory but stay norm
+`dyn_orth_at_input` / `dyn_orth_at_output`. Dynamic layers add memory but stay norm
 preserving, so the bi-Lipschitz bounds are unchanged.
 
 Two inverse modes are provided for networks containing dynamic-orthogonal layers:
@@ -26,11 +26,7 @@ Two inverse modes are provided for networks containing dynamic-orthogonal layers
        forward pass (the *next* states) to invert the dynamic layers too, exactly
        recovering the true input.
 
-It reuses the existing building blocks in `robustnn` (no duplicated math):
-    - `robustnn.ren_jax.BiLipschitzREN` for the REN blocks (and their inverse).
-    - `robustnn.orthogonal_jax.Unitary` / `DynUnitary` for the (dynamic) layers.
-
-Author: ported from the original BiLipRENs research code.
+Author: Yurui Zhang.
 '''
 
 import jax
@@ -119,7 +115,7 @@ class CompositionREN(nn.Module):
         activation: REN activation function (default: relu).
         use_bias: whether unitary layers use a bias (default: True).
         init_method: REN init method, "random" or "long_memory" (default: "random").
-        dyn_orth: use a dynamic orthogonal layer at the input (default: False).
+        dyn_orth_at_input: use a dynamic orthogonal layer at the input (default: False).
         dyn_orth_at_output: append a dynamic orthogonal layer at the output
             (default: False).
         dyn_state_multiplier: dynamic-orthogonal state size = this * state_size
@@ -136,7 +132,7 @@ class CompositionREN(nn.Module):
     activation: ActivationFn = nn.relu
     use_bias: bool = True
     init_method: str = "random"
-    dyn_orth: bool = False
+    dyn_orth_at_input: bool = False
     dyn_orth_at_output: bool = False
     dyn_state_multiplier: int = 50
     carry_init: Initializer = init.zeros_init()
@@ -157,7 +153,7 @@ class CompositionREN(nn.Module):
         dyn_size = self.dyn_state_multiplier * self.state_size
 
         # Input layer: static or dynamic orthogonal.
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             self.dyn_in = DynUnitary(input_size=self.input_size,
                                      state_size=dyn_size,
                                      use_bias=self.use_bias,
@@ -213,12 +209,12 @@ class CompositionREN(nn.Module):
     def _direct_to_explicit(self) -> ExplicitCompRENParams:
         """Convert direct params to explicit params (forward direction)."""
         return ExplicitCompRENParams(
-            input_orth=(None if self.dyn_orth
+            input_orth=(None if self.dyn_orth_at_input
                         else self.input_orth._direct_to_explicit()),
             rens=[r._direct_to_explicit() for r in self.rens],
             orths=[o._direct_to_explicit() for o in self.orths],
             output_orth=self.output_orth._direct_to_explicit(),
-            dyn_in=(self.dyn_in._direct_to_explicit() if self.dyn_orth else None),
+            dyn_in=(self.dyn_in._direct_to_explicit() if self.dyn_orth_at_input else None),
             dyn_out=(self.dyn_out._direct_to_explicit()
                      if self.dyn_orth_at_output else None),
             lipmin=self.mu,
@@ -228,12 +224,12 @@ class CompositionREN(nn.Module):
     def _direct_to_explicit_inverse(self) -> ExplicitInverseCompRENParams:
         """Convert direct params to explicit params (inverse direction)."""
         return ExplicitInverseCompRENParams(
-            input_orth=(None if self.dyn_orth
+            input_orth=(None if self.dyn_orth_at_input
                         else self.input_orth._direct_to_explicit()),
             rens=[r._explicit_inverse(r._direct_to_explicit()) for r in self.rens],
             orths=[o._direct_to_explicit() for o in self.orths],
             output_orth=self.output_orth._direct_to_explicit(),
-            dyn_in=(self.dyn_in._direct_to_explicit() if self.dyn_orth else None),
+            dyn_in=(self.dyn_in._direct_to_explicit() if self.dyn_orth_at_input else None),
             dyn_out=(self.dyn_out._direct_to_explicit()
                      if self.dyn_orth_at_output else None),
             lipmin=self.mu,
@@ -248,7 +244,7 @@ class CompositionREN(nn.Module):
         new_carry: Carry = {"rens": [None] * self.num_layers,
                             "dyn_in": None, "dyn_out": None}
 
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             d_in, x = self.dyn_in._explicit_call(carry["dyn_in"], inputs, e.dyn_in)
             new_carry["dyn_in"] = d_in
         else:
@@ -288,7 +284,7 @@ class CompositionREN(nn.Module):
             x = self.orths[i]._explicit_inverse_call(x, e.orths[i])
             s_i, x = self.rens[i]._explicit_inverse_call(carry["rens"][i], x, e.rens[i])
             rec_states[i] = s_i
-        if not self.dyn_orth:
+        if not self.dyn_orth_at_input:
             # Static input orth is invertible; recover the true input.
             x = self.input_orth._explicit_inverse_call(x, e.input_orth)
         # A dynamic input orth (if any) is intentionally skipped.
@@ -316,7 +312,7 @@ class CompositionREN(nn.Module):
             s_i, x = self.rens[i]._explicit_inverse_call(carry["rens"][i], x, e.rens[i])
             rec_states[i] = s_i
 
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             _, x = self.dyn_in._explicit_inverse_call(new_carry["dyn_in"], x, e.dyn_in)
         else:
             x = self.input_orth._explicit_inverse_call(x, e.input_orth)
@@ -340,7 +336,7 @@ class CompositionREN(nn.Module):
         for _ in range(self.num_layers):
             rng, sub = jax.random.split(rng)
             carry["rens"].append(self.carry_init(sub, ren_shape, self.param_dtype))
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             carry["dyn_in"] = jnp.zeros(dyn_shape, self.param_dtype)
         if self.dyn_orth_at_output:
             carry["dyn_out"] = jnp.zeros(dyn_shape, self.param_dtype)

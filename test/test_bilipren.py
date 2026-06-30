@@ -116,7 +116,7 @@ def test_composition_ren_dyn_orth():
     mu, nu = 0.5, 5.0
     model = CompositionREN(io, nx, nv, num_layers=L, mu=mu, nu=nu,
                            init_method="long_memory",
-                           dyn_orth=True, dyn_state_multiplier=4)
+                           dyn_orth_at_input=True, dyn_state_multiplier=4)
 
     batches = 5
     carry = model.initialize_carry(k1, (batches, io))

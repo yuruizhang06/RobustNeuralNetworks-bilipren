@@ -13,7 +13,7 @@ Architecture:
     [input_orth | dyn_in] -> [REN -> orth] x num_layers -> output_orth [-> dyn_out]
 
 The (optional) input/output layers can be made dynamic (`DynUnitary`) via
-`dyn_orth` / `dyn_orth_at_output`. Dynamic layers add memory but stay norm
+`dyn_orth_at_input` / `dyn_orth_at_output`. Dynamic layers add memory but stay norm
 preserving, so the bi-Lipschitz bounds are unchanged.
 
 Two inverse modes are provided for networks containing dynamic-orthogonal layers:
@@ -26,9 +26,7 @@ Two inverse modes are provided for networks containing dynamic-orthogonal layers
        forward pass (the *next* states) to invert the dynamic layers too, exactly
        recovering the true input.
 
-It reuses the existing building blocks (no duplicated math):
-    - `robustnn.ren_torch.BiLipschitzREN` for the REN blocks (and their inverse).
-    - `robustnn.orthogonal_torch.Unitary` / `DynUnitary` for the (dynamic) layers.
+Author: Yurui Zhang.
 '''
 
 from typing import List, Tuple, Optional, Dict, Any
@@ -82,7 +80,7 @@ class CompositionREN(nn.Module):
         nu: overall upper (Lipschitz) bound (default 10.0).
         activation: REN activation function (default: torch.relu).
         use_bias: whether unitary layers use a bias (default: True).
-        dyn_orth: use a dynamic orthogonal layer at the input (default: False).
+        dyn_orth_at_input: use a dynamic orthogonal layer at the input (default: False).
         dyn_orth_at_output: append a dynamic orthogonal layer at the output
             (default: False).
         dyn_state_multiplier: dynamic-orthogonal state size = this * state_size
@@ -92,7 +90,7 @@ class CompositionREN(nn.Module):
     def __init__(self, input_size: int, state_size: int, features: int,
                  num_layers: int, mu: float = 1.0, nu: float = 10.0,
                  activation=torch.relu, use_bias: bool = True,
-                 dyn_orth: bool = False, dyn_orth_at_output: bool = False,
+                 dyn_orth_at_input: bool = False, dyn_orth_at_output: bool = False,
                  dyn_state_multiplier: int = 50,
                  dtype: torch.dtype = torch.float32):
         super().__init__()
@@ -108,7 +106,7 @@ class CompositionREN(nn.Module):
         self.mu = mu
         self.nu = nu
         self.use_bias = use_bias
-        self.dyn_orth = dyn_orth
+        self.dyn_orth_at_input = dyn_orth_at_input
         self.dyn_orth_at_output = dyn_orth_at_output
         self.dyn_state_multiplier = dyn_state_multiplier
 
@@ -119,7 +117,7 @@ class CompositionREN(nn.Module):
         dyn_size = dyn_state_multiplier * state_size
 
         # Input layer: static or dynamic orthogonal.
-        if dyn_orth:
+        if dyn_orth_at_input:
             self.dyn_in = DynUnitary(input_size, dyn_size, bias=use_bias, dtype=dtype)
             self.input_orth = None
         else:
@@ -150,7 +148,7 @@ class CompositionREN(nn.Module):
         new_carry: Carry = {"rens": [None] * self.num_layers,
                             "dyn_in": None, "dyn_out": None}
 
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             d_in, x = self.dyn_in(carry["dyn_in"], inputs)
             new_carry["dyn_in"] = d_in
         else:
@@ -192,7 +190,7 @@ class CompositionREN(nn.Module):
             x = _unitary_inverse(self.orths[i], x)
             s_i, x = self.rens[i].inverse(carry["rens"][i], x)
             rec_states[i] = s_i
-        if not self.dyn_orth:
+        if not self.dyn_orth_at_input:
             # Static input orth is invertible; recover the true input.
             x = _unitary_inverse(self.input_orth, x)
         # A dynamic input orth (if any) is intentionally skipped.
@@ -222,7 +220,7 @@ class CompositionREN(nn.Module):
             s_i, x = self.rens[i].inverse(carry["rens"][i], x)
             rec_states[i] = s_i
 
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             _, x = self.dyn_in.inverse(new_carry["dyn_in"], x)
         else:
             x = _unitary_inverse(self.input_orth, x)
@@ -237,7 +235,7 @@ class CompositionREN(nn.Module):
         for ren in self.rens:
             carry["rens"].append(ren.initialize_carry(batch_size, dtype, device))
         dyn_size = self.dyn_state_multiplier * self.state_size
-        if self.dyn_orth:
+        if self.dyn_orth_at_input:
             carry["dyn_in"] = torch.zeros(batch_size, dyn_size, dtype=dtype,
                                           device=device)
         if self.dyn_orth_at_output:

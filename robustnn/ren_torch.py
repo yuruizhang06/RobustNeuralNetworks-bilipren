@@ -14,7 +14,7 @@ bi-Lipschitz REN is the square case whose input-output map `G` obeys
 RENs originally introduced in: [Recurrent Equilibrium Networks: Flexible Dynamic
 Models With Guaranteed Stability and Robustness](https://ieeexplore.ieee.org/document/10179161).
 
-Author: ported from the JAX implementation by Nic Barbara.
+Author: Yurui Zhang.
 '''
 
 import torch

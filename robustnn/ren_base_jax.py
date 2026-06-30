@@ -26,6 +26,7 @@ from flax.typing import Dtype, Array
 
 from robustnn.utils import l2_norm, identity_init
 from robustnn.utils import ActivationFn, Initializer
+from robustnn.solvers import douglas_rachford_layer
 
 
 def get_valid_init():
@@ -89,40 +90,16 @@ def _equilibrium_ift_grad_bwd(activation, res, y_bar):
 _equilibrium_ift_grad.defvjp(_equilibrium_ift_grad_fwd, _equilibrium_ift_grad_bwd)
 
 
-def _solve_full_layer(activation, D11, b, tol=1e-9, alpha=0.6, max_iter=_INV_SOLVER_ITERS):
-    """Solve `w = activation(D11 @ w + b)` for a full (non-triangular) `D11`
-    using Douglas-Rachford operator splitting.
-    
-    Only valid for the forward pass (gradients are attached separately via
-    `_equilibrium_ift_grad`). This is used by the inverse REN, whose `D11`
-    matrix is generally not lower-triangular.
-    """
-    w_eq = jnp.zeros_like(b)
-    uk = jnp.zeros_like(b)
-    I = jnp.eye(D11.shape[0], dtype=b.dtype)
-    
-    def body_fun(carry):
-        w_eq, uk, _, k = carry
-        uh = 2 * w_eq - uk
-        zh = jnp.linalg.solve(I + alpha * (I - D11), (uh + alpha * b).T)
-        uk_new = uk - w_eq + zh.T
-        w_eq_new = activation(uk_new)
-        error = l2_norm(w_eq - w_eq_new)
-        return (w_eq_new, uk_new, error, k + 1)
-    
-    def cond_fun(carry):
-        _, _, error, k = carry
-        return jnp.logical_and(error >= tol, k < max_iter)
-    
-    init_carry = (w_eq, uk, jnp.inf, 0)
-    w_eq_final, _, _, _ = jax.lax.while_loop(cond_fun, body_fun, init_carry)
-    return w_eq_final
-
-
 def full_equilibrium_layer(activation, D11, b, max_iter=_INV_SOLVER_ITERS):
     """Solve `w = activation(D11 @ w + b)` for a full `D11`, with autodiff
-    support via the implicit function theorem."""
-    w_eq = jax.lax.stop_gradient(_solve_full_layer(activation, D11, b, max_iter=max_iter))
+    support via the implicit function theorem.
+
+    The forward fixed point is found by Douglas-Rachford splitting (see
+    `robustnn.solvers.douglas_rachford_layer`); this is used by the inverse
+    REN, whose `D11` matrix is generally not lower-triangular.
+    """
+    w_eq = jax.lax.stop_gradient(
+        douglas_rachford_layer(activation, D11, b, max_iter=max_iter))
     v = w_eq @ D11.T + b
     w_eq = activation(v)
     return _equilibrium_ift_grad(activation, D11, v, w_eq)
