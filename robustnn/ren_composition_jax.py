@@ -40,10 +40,8 @@ from flax.typing import Array, Dtype
 
 from robustnn.ren_jax import BiLipschitzREN
 from robustnn.ren_base_jax import ExplicitRENParams
-from robustnn.orthogonal_jax import (
-    Unitary, ExplicitOrthogonalParams,
-    DynUnitary, ExplicitDynOrthogonalParams,
-)
+from robustnn.orthogonal_jax import Unitary, ExplicitOrthogonalParams
+from robustnn.dyn_orthogonal_jax import DynUnitary, ExplicitDynOrthogonalParams
 from robustnn.utils import ActivationFn, Initializer
 
 # A carry is a dict: {"rens": [s_0, ...], "dyn_in": Array|None, "dyn_out": Array|None}.

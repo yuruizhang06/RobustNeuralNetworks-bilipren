@@ -26,7 +26,7 @@ from flax.typing import Dtype, Array
 
 from robustnn.utils import l2_norm, identity_init
 from robustnn.utils import ActivationFn, Initializer
-from robustnn.solvers import douglas_rachford_layer
+from robustnn.solvers import DouglasRachfordSplit
 
 
 def get_valid_init():
@@ -95,11 +95,11 @@ def full_equilibrium_layer(activation, D11, b, max_iter=_INV_SOLVER_ITERS):
     support via the implicit function theorem.
 
     The forward fixed point is found by Douglas-Rachford splitting (see
-    `robustnn.solvers.douglas_rachford_layer`); this is used by the inverse
+    `robustnn.solvers.DouglasRachfordSplit`); this is used by the inverse
     REN, whose `D11` matrix is generally not lower-triangular.
     """
     w_eq = jax.lax.stop_gradient(
-        douglas_rachford_layer(activation, D11, b, max_iter=max_iter))
+        DouglasRachfordSplit(activation, D11, b, max_iter=max_iter))
     v = w_eq @ D11.T + b
     w_eq = activation(v)
     return _equilibrium_ift_grad(activation, D11, v, w_eq)

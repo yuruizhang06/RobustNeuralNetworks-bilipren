@@ -35,7 +35,8 @@ import torch
 import torch.nn as nn
 
 from robustnn.ren_torch import BiLipschitzREN
-from robustnn.orthogonal_torch import Unitary, DynUnitary, cayley, norm
+from robustnn.orthogonal_torch import Unitary, cayley, norm
+from robustnn.dyn_orthogonal_torch import DynUnitary
 
 # A carry is a dict: {"rens": [s_0, ...], "dyn_in": Tensor|None, "dyn_out": Tensor|None}.
 Carry = Dict[str, Any]

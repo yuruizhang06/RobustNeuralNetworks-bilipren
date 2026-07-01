@@ -8,8 +8,8 @@ This module collects the iterative solvers used to evaluate implicit
 
 - `DavisYinSplit`: three-operator (Davis-Yin) split solver for the
   monotone-Lipschitz network (`MonLipNet`) equilibrium.
-- `forward_backward_layer`, `peaceman_rachford_layer`,
-  `douglas_rachford_layer`: operator-splitting solvers for the REN equilibrium
+- `ForwardBackwardSplit`, `PeacemanRachfordSplit`,
+  `DouglasRachfordSplit`: operator-splitting solvers for the REN equilibrium
   layer `w = activation(D11 @ w + b)` with a full (non-triangular) `D11`. The
   Douglas-Rachford solver is the default used by the (inverse) REN.
 
@@ -97,8 +97,8 @@ def DavisYinSplit(uk, bz, e,
 # separately (e.g. via the implicit function theorem in `ren_base_jax`).
 
 
-def forward_backward_layer(activation, D11, b, tol=1e-9, alpha=0.8,
-                           max_iter=_DEFAULT_SOLVER_ITERS):
+def ForwardBackwardSplit(activation, D11, b, tol=1e-9, alpha=0.8,
+                         max_iter=_DEFAULT_SOLVER_ITERS):
     """Solve `w = activation(D11 @ w + b)` by forward-backward splitting.
 
     Args:
@@ -131,8 +131,8 @@ def forward_backward_layer(activation, D11, b, tol=1e-9, alpha=0.8,
     return w_eq_final
 
 
-def peaceman_rachford_layer(activation, D11, b, tol=1e-9, alpha=0.8,
-                            max_iter=_DEFAULT_SOLVER_ITERS):
+def PeacemanRachfordSplit(activation, D11, b, tol=1e-9, alpha=0.8,
+                          max_iter=_DEFAULT_SOLVER_ITERS):
     """Solve `w = activation(D11 @ w + b)` by Peaceman-Rachford splitting.
 
     Args:
@@ -168,8 +168,8 @@ def peaceman_rachford_layer(activation, D11, b, tol=1e-9, alpha=0.8,
     return w_eq_final
 
 
-def douglas_rachford_layer(activation, D11, b, tol=1e-9, alpha=0.6,
-                           max_iter=_DEFAULT_SOLVER_ITERS):
+def DouglasRachfordSplit(activation, D11, b, tol=1e-9, alpha=0.6,
+                         max_iter=_DEFAULT_SOLVER_ITERS):
     """Solve `w = activation(D11 @ w + b)` by Douglas-Rachford splitting.
 
     This is the default solver used by the (inverse) REN, whose `D11` is
